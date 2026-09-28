@@ -3,6 +3,15 @@
 ### Asignatura: Ciencia de Datos
 ### Fecha:      09/27/2026
 
+import pandas as pd
+
+datos = pd.read_csv("calculo_recta.csv")
+
+x1 = datos["x"].iloc[0]
+y1 = datos["y"].iloc[0]
+x2 = datos["x"].iloc[1]
+y2 = datos["y"].iloc[1]
+
 
 def calculo_recta(x_1, y_1, x_2, y_2):
     """
