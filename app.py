@@ -23,6 +23,7 @@ Archivos requeridos:
 """
 from prueba_recta import calculo_recta
 import pandas as pd
+from prueba_recta import validar_filas_csv
 
 def probar_puntos(x_1, y_1, x_2, y_2):
     """
@@ -44,6 +45,7 @@ def probar_puntos(x_1, y_1, x_2, y_2):
 if __name__ == "__main__":
 
     datos = pd.read_csv("calculo_recta.csv")
+    validar_filas_csv(datos)
 
     x1 = datos["x"].iloc[0]
     y1 = datos["y"].iloc[0]
