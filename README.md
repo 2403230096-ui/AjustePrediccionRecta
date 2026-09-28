@@ -19,24 +19,43 @@ b = y1 - m * x1
 y = m * x + b
 ```
 
-Con la recta calculada se interpolan valores entre x1 y x2, y se predicen valores para x > x2.
+- `m` es la pendiente y `b` la ordenada al origen.
+- Con la recta se interpolan los valores enteros entre x1 y x2, y se predicen valores posteriores (extrapolación).
 
 ## Estructura del proyecto
 
 ```
 .
 ├── app.py             # Interfaz en Streamlit
-├── recta.py           # Lógica numérica (sin Streamlit)
-├── puntos.csv         # Archivo de ejemplo
-└── requirements.txt   # Dependencias
+├── recta.py           # Lógica numérica y de datos (sin Streamlit)
+├── pruebas_csv/       # Archivos CSV para probar las validaciones
+├── requirements.txt   # Dependencias
+└── README.md
 ```
 
-- **`recta.py`**: funciones de cálculo de `m` y `b` (con validación cuando x1 = x2), lectura y validación del CSV, y generación de la tabla.
-- **`app.py`**: carga del archivo, mensajes de error y despliegue de resultados, gráfica y tabla.
+### `recta.py`
+
+| Función | Responsabilidad |
+|---|---|
+| `validar_filas_csv` | Comprueba que el archivo tenga exactamente 2 filas |
+| `validar_columnas_csv` | Comprueba que existan las columnas `x` e `y` |
+| `validar_numericos_csv` | Comprueba que no haya celdas vacías ni texto en `x` e `y` |
+| `cargar_csv` | Lee el archivo con pandas y aplica las tres validaciones |
+| `extraer_coordenadas` | Obtiene `(x_1, y_1, x_2, y_2)` del DataFrame validado |
+| `calculo_recta` | Calcula `m` y `b` (lanza `ValueError` si x1 = x2) |
+| `generar_rango_x` | Genera los enteros entre los dos puntos más los valores de extrapolación |
+| `generar_tabla` | Construye el DataFrame con las columnas `x` e `y proyectado` |
+| `generar_grafica` | Devuelve la figura de Matplotlib con los puntos y la recta |
+
+Todas las validaciones lanzan `ValueError` con un mensaje claro, que `app.py` atrapa y muestra en pantalla.
+
+### `app.py`
+
+Contiene únicamente la interfaz: carga del archivo, selección de la cantidad de valores a predecir, mensajes de error, métricas de `m` y `b`, tabla y gráfica.
 
 ## Formato del archivo CSV
 
-Debe contener exactamente dos filas y las columnas `x` e `y`:
+Debe contener exactamente dos filas y las columnas `x` e `y`, con valores numéricos:
 
 ```
 x,y
@@ -58,12 +77,20 @@ Librerías utilizadas: `streamlit`, `pandas`, `numpy`, `matplotlib`.
 streamlit run app.py
 ```
 
-## Notas
+## Pruebas
 
-- Si los dos puntos tienen la misma coordenada x, la aplicación muestra un aviso, porque no se puede calcular la pendiente.
-- La lógica de cálculo está separada de la interfaz para poder reutilizarla y probarla por separado.
+La carpeta `pruebas_csv/` contiene archivos para verificar cada validación:
+
+- **Válidos:** puntos normales, invertidos, con decimales y con negativos.
+- **Con error:** tres filas, una fila, sin encabezado, columna con otro nombre, separador distinto de coma, texto en `x`, celda vacía, archivo vacío y dos puntos con la misma `x`.
+
+Cada archivo con error rompe una sola regla, para confirmar que la aplicación muestra el mensaje correspondiente y no un error de Python.
 
 ## Bitácora de desarrollo
 
 - Función `calculo_recta` con validación de x iguales.
-- Pruebas del cálculo con casos normales y de error.
+- Carga del CSV con pandas y validaciones de filas, columnas y valores numéricos.
+- Extracción de coordenadas y cálculo de `m` y `b`.
+- Interfaz en Streamlit con métricas y manejo de errores.
+- Tabla de interpolación y predicción, y gráfica con Matplotlib.
+- Archivos CSV de prueba para las validaciones.

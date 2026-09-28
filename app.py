@@ -2,56 +2,58 @@
 ### Matricula:  2403230096
 ### Asignatura: Ciencia de Datos
 ### Fecha:      09/27/2026
-"""
-Módulo de prueba y consumo para la función calculo_recta.
 
-Este script lee coordenadas desde un archivo CSV ('CalculoRecta.csv'),
-extrae los primeros dos puntos y ejecuta pruebas de cálculo de pendiente (m)
-e intersección en y (b) utilizando el módulo 'recta'.
+import streamlit as st
+from recta import (
+    cargar_csv,
+    extraer_coordenadas,
+    calculo_recta,
+    generar_tabla,
+    generar_grafica
+)
 
-Funcionalidades:
-    - Lectura de datos desde archivo CSV con pandas.
-    - Ejecución de pruebas con datos del CSV y datos hardcodeados.
-    - Captura y manejo de excepciones (ValueError) para casos de líneas verticales.
+st.title("Cálculo de la ecuación de una recta")
 
-Dependencias:
-    - pandas
-    - recta.calculo_recta
+archivo = st.file_uploader(
+    "Selecciona un archivo CSV",
+    type=["csv"]
+)
 
-Archivos requeridos:
-    - CalculoRecta.csv (debe contener al menos dos filas con columnas 'x' y 'y')
-"""
-from prueba_recta import calculo_recta
-import pandas as pd
-from prueba_recta import validar_filas_csv
-
-def probar_puntos(x_1, y_1, x_2, y_2):
-    """
-    Ejecuta el cálculo de la recta entre dos puntos.
-
-    Parámetros:
-        x_1 (float/int): Coordenada x del primer punto.
-        y_1 (float/int): Coordenada y del primer punto.
-        x_2 (float/int): Coordenada x del segundo punto.
-        y_2 (float/int): Coordenada y del segundo punto.
-    """
+if archivo is not None:
     try:
-        m, b = calculo_recta(x_1, y_1, x_2, y_2)
-        print(f"Puntos ({x_1}, {y_1}) y ({x_2}, {y_2}) -> m = {m}, b = {b}")
+        datos = cargar_csv(archivo)
+
+        coordenadas = extraer_coordenadas(datos)
+        x_1, y_1, x_2, y_2 = coordenadas
+
+        m, b = calculo_recta(*coordenadas)
+
+        st.success("Cálculo realizado correctamente")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("Pendiente (m)", f"{m:.4f}")
+        with col2:
+            st.metric("Ordenada al origen (b)", f"{b:.4f}")
+
+        st.subheader("Tabla de interpolación y predicción")
+
+        tabla = generar_tabla(x_1, x_2, m, b)
+
+        st.dataframe(
+            tabla.style.format({
+                "y proyectado": "{:.2f}"
+            }),
+            use_container_width=True
+        )
+
+        st.subheader("Visualización gráfica")
+
+        figura = generar_grafica(
+            x_1, y_1, x_2, y_2, m, b
+        )
+
+        st.pyplot(figura)
+
     except ValueError as e:
-        print(f"Puntos ({x_1}, {y_1} y {x_2}, {y_2} -> Error: {e})")
-
-
-if __name__ == "__main__":
-
-    datos = pd.read_csv("calculo_recta.csv")
-    validar_filas_csv(datos)
-
-    x1 = datos["x"].iloc[0]
-    y1 = datos["y"].iloc[0]
-    x2 = datos["x"].iloc[1]
-    y2 = datos["y"].iloc[1]
-
-    probar_puntos(x1, y1, x2, y2)
-    probar_puntos(1, 3, 8, 14)
-    probar_puntos(2, 3, 2, 9)
+        st.error(str(e))
